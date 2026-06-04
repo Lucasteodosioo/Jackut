@@ -15,7 +15,7 @@ public class SistemaJackut {
         carregarDados();
     }
 
-    // Tenta carregar o mapa de usuários a partir do arquivo de dados. Se falhar, inicia mapa vazio.
+    // tenta carregar o mapa de usuários a partir do arquivo de dados, se falhar, inicia mapa vazio
     private void carregarDados() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ARQUIVO_DADOS))) {
             usuarios = (Map<String, Usuario>) ois.readObject();
@@ -24,7 +24,7 @@ public class SistemaJackut {
         }
     }
 
-    // Persiste o mapa de usuários em disco no arquivo definido por ARQUIVO_DADOS.
+    // persiste o mapa de usuários em disco no arquivo definido por ARQUIVO_DADOS.
     private void salvarDados() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARQUIVO_DADOS))) {
             oos.writeObject(usuarios);
@@ -56,8 +56,61 @@ public class SistemaJackut {
         return sessionId;
     }
 
+    // nnvia um pedido de amizade ou aceita um pedido existente
+    public void adicionarAmigo(String id, String amigo) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!usuarios.containsKey(amigo)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (remetente.equals(amigo)) {
+            throw new Exception("Usuário não pode adicionar a si mesmo como amigo.");
+        }
+
+        Usuario userRem = usuarios.get(remetente);
+        Usuario userDest = usuarios.get(amigo);
+
+        if (userRem.ehAmigo(amigo)) {
+            throw new Exception("Usuário já está adicionado como amigo.");
+        }
+
+        if (userDest.temPedidoDe(remetente)) {
+            throw new Exception("Usuário já está adicionado como amigo, esperando aceitação do convite.");
+        }
+
+        if (userRem.temPedidoDe(amigo)) {
+            // remover pedido e adicionar como amigos mutuamente
+            userRem.removerPedido(amigo);
+            userRem.adicionarAmigo(amigo);
+            userDest.adicionarAmigo(remetente);
+            return;
+        }
+
+        userDest.receberPedido(remetente);
+    }
+
+    public boolean ehAmigo(String login, String amigo) throws Exception {
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.ehAmigo(amigo);
+    }
+
+    public String getAmigos(String login) throws Exception {
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.listaAmigosFormato();
+    }
+
     public void criarUsuario(String login, String senha, String nome) throws Exception {
-        //validações
         if (login == null || login.isEmpty()) {
             throw new Exception("Login inválido.");
         }
@@ -100,7 +153,6 @@ public class SistemaJackut {
 
 
     public void encerrarSistema() {
-        // Salva os dados antes de limpar a memória para garantir persistência entre execuções.
         salvarDados();
         usuarios.clear();
     }

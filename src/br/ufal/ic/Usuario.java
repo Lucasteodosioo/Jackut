@@ -8,12 +8,16 @@ public class Usuario implements Serializable {
     private String senha;
     private String nome;
     private java.util.Map<String, String> atributos;
+    private java.util.Set<String> amigos;
+    private java.util.Set<String> pedidosRecebidos;
 
     public Usuario(String login, String senha, String nome) {
         this.login = login;
         this.senha = senha;
         this.nome = nome;
         this.atributos = new java.util.HashMap<>();
+        this.amigos = new java.util.LinkedHashSet<>();
+        this.pedidosRecebidos = new java.util.LinkedHashSet<>();
     }
 
     public String getLogin() {
@@ -44,11 +48,44 @@ public class Usuario implements Serializable {
         }
         return null;
     }
-
-    // Define/atualiza um atributo do perfil do usuário. Atributos nulos são ignorados.
+    
     public void setAtributo(String atributo, String valor) {
         if (atributo == null) return;
         atributos.put(atributo, valor);
+    }
+
+    // Marca que este usuário recebeu um pedido de amizade do usuário 'from'.
+    public void receberPedido(String from) {
+        if (from == null) return;
+        pedidosRecebidos.add(from);
+    }
+    
+    public void removerPedido(String from) {
+        if (from == null) return;
+        pedidosRecebidos.remove(from);
+    }
+    
+    public boolean temPedidoDe(String from) {
+        if (from == null) return false;
+        return pedidosRecebidos.contains(from);
+    }
+    
+    public void adicionarAmigo(String loginAmigo) {
+        if (loginAmigo == null) return;
+        amigos.add(loginAmigo);
+    }
+    
+    public boolean ehAmigo(String loginAmigo) {
+        if (loginAmigo == null) return false;
+        return amigos.contains(loginAmigo);
+    }
+
+    // Retorna os amigos neste formato: {a,b,c} preservando ordem de inserção.
+    public String listaAmigosFormato() {
+        if (amigos == null || amigos.isEmpty()) {
+            return "{}";
+        }
+        return "{" + String.join(",", amigos) + "}";
     }
 }
 
