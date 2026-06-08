@@ -1,0 +1,65 @@
+Relatório do Projeto Jackut
+
+Resumo do design
+Este relatório mostra as decisões de projeto adotadas ao implementar a lógica de negócio do Jackut (pacote br.ufal.ic).
+O objetivo foi satisfazer 100% os testes de aceitação EasyAccept fornecidos, mantendo código simples e testável.
+
+Visão geral das classes principais
+- Facade (br.ufal.ic.Facade)
+  - Papel: camada de exposição para os testes EasyAccept. Os métodos públicos da Facade são correspondentes aos comandos do roteiro de testes (ex.: criarUsuario, abrirSessao, editarPerfil, adicionarAmigo, enviarRecado, lerRecado, getAtributoUsuario, getAmigos, ehAmigo, zerarSistema, encerrarSistema).
+  - Motivo: separar a interface de teste da lógica do sistema (SistemaJackut). Facilita testes e mantém a arquitetura limpa.
+
+- SistemaJackut (br.ufal.ic.SistemaJackut)
+  - Papel: contém toda a lógica de negócio (gerenciamento de usuários, sessões, amizades, recados e persistência).
+  - Responsabilidades:
+    - Gerir o mapa de usuários (login -> Usuario).
+    - Gerir sessões (sessionId -> login).
+    - Implementar regras de negócio (validações, envio/aceitação de convites de amizade, filas de recados FIFO).
+    - Persistir o estado em arquivo (`usuarios.dat`) ao encerrar o sistema e carregar ao iniciar (serialização Java).
+  - Motivo: centralizar regras e persistência em uma única classe facilita o controle de transações lógicas e testes unitários.
+
+- Usuario (br.ufal.ic.Usuario)
+  - Papel: modelo de domínio para um usuário.
+  - Campos principais:
+    - login, senha, nome
+    - amigos (LinkedHashSet<String>) — mantém ordem de inserção para facilitar testes que verificam ordem
+    - pedidosRecebidos (LinkedHashSet<String>) — pedidos de amizade pendentes
+    - recados (Queue<String>, LinkedList) — fila FIFO de recados recebidos
+  - Motivo das escolhas:
+    - Map para atributos para permitir atributos arbitrários e inexistentes (testes esperam lançar exceção quando atributo ausente).
+    - LinkedHashSet para amigos para preservar ordem previsível nos asserts dos testes.
+    - Queue para recados para garantir comportamento FIFO.
+    - Implementa Serializable para que a coleção inteira de usuários seja persistível diretamente com ObjectOutputStream.
+
+- Main (classe na raiz, sem package)
+  - Papel: launcher para execução com EasyAccept. Mantém-se fora do package para facilitar execução pelo professor/IDE.
+  - Motivo: evitar dependência de package na classe de entrada usada pelo executor dos testes.
+
+Principais decisões de implementação
+1. Persistência via serialização Java (arquivo `usuarios.dat`)
+   - Simplicidade: serializar o mapa de usuários é direto e suficiente para o escopo da disciplina.
+   - Observação: em projetos reais, seria preferível usar formato legível (JSON) ou um banco de dados para maior robustez e versionamento.
+
+2. Sessões representadas por IDs (String)
+   - Ao abrir sessão, retorna-se um id (String) que é usado em comandos que exigem autenticação (ex.: editarPerfil, adicionarAmigo, enviarRecado, lerRecado).
+   - Motivo: corresponde exatamente ao formato dos testes EasyAccept, que atribuem id1=abrirSessao ... e usam id1 para comandos subsequentes.
+
+3. Estruturas de dados selecionadas
+   - Map<String,Usuario> para usuários: acesso O(1) por login.
+   - LinkedHashSet para amigos e pedidos: preserva ordem de inserção e evita duplicatas.
+   - Queue (LinkedList) para recados: comportamento FIFO pedido pelos testes.
+
+4. Tratamento de atributos de perfil
+   - `getAtributo` retorna `nome` se atributo == "nome"; retorna null se atributo inexistente.
+
+Outras decisões de design
+- Facade como adaptador: mantém assinatura simples e mapeia parâmetros String (como EasyAccept envia), delegando ao SistemaJackut.
+
+Observações
+- Removi BOM (Byte Order Mark) dos arquivos `tests/*.txt` , pois EasyAccept considera o BOM como caractere inválido no começo do arquivo e gera "Unknown command".
+
+Conclusão
+O design foi feito para ser lido com clareza,e simplicidade de implementação (serialização Java).
+A separação entre `Facade` e `SistemaJackut`garante que a interface de testes fique estável
+enquanto a lógica pode evoluir. As estruturas escolhidas (Map, LinkedHashSet, Queue)correspondem
+às necessidades dos testes e preservam propriedades (ordem e unicidade) exigidas.
