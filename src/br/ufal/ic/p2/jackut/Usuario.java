@@ -1,4 +1,4 @@
-package br.ufal.ic;
+package br.ufal.ic.p2.jackut;
 
 import java.io.Serializable;
 
@@ -10,6 +10,7 @@ public class Usuario implements Serializable {
     private java.util.Map<String, String> atributos;
     private java.util.Set<String> amigos;
     private java.util.Set<String> pedidosRecebidos;
+    private java.util.Queue<String> recados;
 
     public Usuario(String login, String senha, String nome) {
         this.login = login;
@@ -18,6 +19,7 @@ public class Usuario implements Serializable {
         this.atributos = new java.util.HashMap<>();
         this.amigos = new java.util.LinkedHashSet<>();
         this.pedidosRecebidos = new java.util.LinkedHashSet<>();
+        this.recados = new java.util.LinkedList<>();
     }
 
     public String getLogin() {
@@ -36,8 +38,6 @@ public class Usuario implements Serializable {
         this.nome = nome;
     }
 
-    // Retorna o valor de um atributo do perfil. Se o atributo for "nome" retorna o nome principal.
-    // Retorna null se o atributo não estiver definido.
     public String getAtributo(String atributo) {
         if ("nome".equalsIgnoreCase(atributo)) {
             return nome;
@@ -54,7 +54,6 @@ public class Usuario implements Serializable {
         atributos.put(atributo, valor);
     }
 
-    // Marca que este usuário recebeu um pedido de amizade do usuário 'from'.
     public void receberPedido(String from) {
         if (from == null) return;
         pedidosRecebidos.add(from);
@@ -80,12 +79,20 @@ public class Usuario implements Serializable {
         return amigos.contains(loginAmigo);
     }
 
-    // Retorna os amigos neste formato: {a,b,c} preservando ordem de inserção.
     public String listaAmigosFormato() {
         if (amigos == null || amigos.isEmpty()) {
             return "{}";
         }
         return "{" + String.join(",", amigos) + "}";
+    }
+
+    public void receberRecado(String recado) {
+        if (recado == null) return;
+        recados.add(recado);
+    }
+
+    public String lerRecado() {
+        return recados.poll();
     }
 }
 

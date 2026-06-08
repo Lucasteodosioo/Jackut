@@ -1,4 +1,4 @@
-package br.ufal.ic;
+package br.ufal.ic.p2.jackut;
 
 public class Facade {
     private SistemaJackut sistema;
@@ -37,6 +37,14 @@ public class Facade {
 
     public String getAmigos(String login) throws Exception {
         return sistema.getAmigos(login);
+    }
+
+    public void enviarRecado(String id, String destinatario, String recado) throws Exception {
+        sistema.enviarRecado(id, destinatario, recado);
+    }
+
+    public String lerRecado(String id) throws Exception {
+        return sistema.lerRecado(id);
     }
 
     public void encerrarSistema() {

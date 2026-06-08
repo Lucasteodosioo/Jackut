@@ -1,4 +1,4 @@
-package br.ufal.ic;
+package br.ufal.ic.p2.jackut;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -110,6 +110,40 @@ public class SistemaJackut {
         return u.listaAmigosFormato();
     }
 
+    public void enviarRecado(String id, String destinatario, String recado) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!usuarios.containsKey(destinatario)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (remetente.equals(destinatario)) {
+            throw new Exception("Usuário não pode enviar recado para si mesmo.");
+        }
+        Usuario userDest = usuarios.get(destinatario);
+        userDest.receberRecado(recado);
+    }
+
+    public String lerRecado(String id) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String login = sessoes.get(id);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        String rec = u.lerRecado();
+        if (rec == null) {
+            throw new Exception("Não há recados.");
+        }
+        return rec;
+    }
+
     public void criarUsuario(String login, String senha, String nome) throws Exception {
         if (login == null || login.isEmpty()) {
             throw new Exception("Login inválido.");
@@ -148,9 +182,6 @@ public class SistemaJackut {
         Usuario usuario = usuarios.get(login);
         usuario.setAtributo(atributo, valor);
     }
-
-    
-
 
     public void encerrarSistema() {
         salvarDados();
