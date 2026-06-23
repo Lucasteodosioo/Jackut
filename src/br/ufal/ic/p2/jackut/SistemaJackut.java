@@ -17,50 +17,30 @@ public class SistemaJackut {
         carregarDados();
     }
 
-    // tenta carregar os dados (usuarios e comunidades) a partir do arquivo de dados; se falhar, inicia mapas vazios
     private void carregarDados() {
+        usuarios = new HashMap<>();
+        comunidades = new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ARQUIVO_DADOS))) {
             Object obj = ois.readObject();
-            if (obj instanceof Map) {
-                Map<?,?> map = (Map<?,?>) obj;
-                boolean oldFormat = false;
-                if (!map.isEmpty()) {
-                    Object sampleVal = map.values().iterator().next();
-                    if (sampleVal instanceof Usuario) {
-                        oldFormat = true;
-                    }
-                } else {
-                    // empty map -> treat as usuarios map (backward compatibility)
-                    oldFormat = true;
-                }
-                if (oldFormat) {
-                    usuarios = (Map<String, Usuario>) map;
-                    comunidades = new HashMap<>();
-                } else {
-                    Object u = map.get("usuarios");
-                    Object c = map.get("comunidades");
-                    if (u instanceof Map) {
-                        usuarios = (Map<String, Usuario>) u;
-                    } else {
-                        usuarios = new HashMap<>();
-                    }
-                    if (c instanceof Map) {
-                        comunidades = (Map<String, Comunidade>) c;
-                    } else {
-                        comunidades = new HashMap<>();
-                    }
-                }
+            if (!(obj instanceof Map)) return;
+            Map<?,?> map = (Map<?,?>) obj;
+            if (map.containsKey("usuarios") || map.containsKey("comunidades")) {
+                usuarios = castMap(map.get("usuarios"));
+                comunidades = castMap(map.get("comunidades"));
             } else {
-                usuarios = new HashMap<>();
-                comunidades = new HashMap<>();
+                usuarios = castMap(map);
             }
         } catch (IOException | ClassNotFoundException e) {
-            usuarios = new HashMap<>();
-            comunidades = new HashMap<>();
+
         }
     }
 
-    // persiste usuarios e comunidades em disco no arquivo definido por ARQUIVO_DADOS.
+    @SuppressWarnings("unchecked")
+    private <K,V> Map<K,V> castMap(Object o) {
+        return (o instanceof Map) ? (Map<K,V>) o : new HashMap<>();
+    }
+
+
     private void salvarDados() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARQUIVO_DADOS))) {
             Map<String, Object> dados = new HashMap<>();
@@ -76,12 +56,11 @@ public class SistemaJackut {
         usuarios.clear();
         sessoes.clear();
         comunidades.clear();
-        // remove persisted data so tests start with a clean slate
         try {
             java.io.File f = new java.io.File(ARQUIVO_DADOS);
             if (f.exists()) f.delete();
         } catch (Exception e) {
-            // ignore
+
         }
     }
 
@@ -104,7 +83,6 @@ public class SistemaJackut {
         return sessionId;
     }
 
-    // nnvia um pedido de amizade ou aceita um pedido existente
     public void adicionarAmigo(String id, String amigo) throws Exception {
         if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
             throw new Exception("Usuário não cadastrado.");
@@ -132,7 +110,6 @@ public class SistemaJackut {
         }
 
         if (userRem.temPedidoDe(amigo)) {
-            // remover pedido e adicionar como amigos mutuamente
             userRem.removerPedido(amigo);
             userRem.adicionarAmigo(amigo);
             userDest.adicionarAmigo(remetente);
