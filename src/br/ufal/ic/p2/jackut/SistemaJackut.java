@@ -7,27 +7,66 @@ import java.io.*;
 public class SistemaJackut {
     private Map<String, Usuario> usuarios;
     private Map<String, String> sessoes;
+    private Map<String, Comunidade> comunidades;
     private static final String ARQUIVO_DADOS = "usuarios.dat";
 
     public SistemaJackut() {
         usuarios = new HashMap<>();
         sessoes = new HashMap<>();
+        comunidades = new java.util.LinkedHashMap<>();
         carregarDados();
     }
 
-    // tenta carregar o mapa de usuários a partir do arquivo de dados, se falhar, inicia mapa vazio
+    // tenta carregar os dados (usuarios e comunidades) a partir do arquivo de dados; se falhar, inicia mapas vazios
     private void carregarDados() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ARQUIVO_DADOS))) {
-            usuarios = (Map<String, Usuario>) ois.readObject();
+            Object obj = ois.readObject();
+            if (obj instanceof Map) {
+                Map<?,?> map = (Map<?,?>) obj;
+                boolean oldFormat = false;
+                if (!map.isEmpty()) {
+                    Object sampleVal = map.values().iterator().next();
+                    if (sampleVal instanceof Usuario) {
+                        oldFormat = true;
+                    }
+                } else {
+                    // empty map -> treat as usuarios map (backward compatibility)
+                    oldFormat = true;
+                }
+                if (oldFormat) {
+                    usuarios = (Map<String, Usuario>) map;
+                    comunidades = new HashMap<>();
+                } else {
+                    Object u = map.get("usuarios");
+                    Object c = map.get("comunidades");
+                    if (u instanceof Map) {
+                        usuarios = (Map<String, Usuario>) u;
+                    } else {
+                        usuarios = new HashMap<>();
+                    }
+                    if (c instanceof Map) {
+                        comunidades = (Map<String, Comunidade>) c;
+                    } else {
+                        comunidades = new HashMap<>();
+                    }
+                }
+            } else {
+                usuarios = new HashMap<>();
+                comunidades = new HashMap<>();
+            }
         } catch (IOException | ClassNotFoundException e) {
             usuarios = new HashMap<>();
+            comunidades = new HashMap<>();
         }
     }
 
-    // persiste o mapa de usuários em disco no arquivo definido por ARQUIVO_DADOS.
+    // persiste usuarios e comunidades em disco no arquivo definido por ARQUIVO_DADOS.
     private void salvarDados() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARQUIVO_DADOS))) {
-            oos.writeObject(usuarios);
+            Map<String, Object> dados = new HashMap<>();
+            dados.put("usuarios", usuarios);
+            dados.put("comunidades", comunidades);
+            oos.writeObject(dados);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,6 +74,15 @@ public class SistemaJackut {
 
     public void zerarSistema() {
         usuarios.clear();
+        sessoes.clear();
+        comunidades.clear();
+        // remove persisted data so tests start with a clean slate
+        try {
+            java.io.File f = new java.io.File(ARQUIVO_DADOS);
+            if (f.exists()) f.delete();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public String abrirSessao(String login, String senha) throws Exception {
@@ -183,9 +231,86 @@ public class SistemaJackut {
         usuario.setAtributo(atributo, valor);
     }
 
+    public void criarComunidade(String sessao, String nome, String descricao) throws Exception {
+        if (sessao == null || sessao.isEmpty() || !sessoes.containsKey(sessao)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String dono = sessoes.get(sessao);
+        if (!usuarios.containsKey(dono)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (nome == null || nome.isEmpty()) {
+            throw new Exception("Nome inválido.");
+        }
+        if (comunidades.containsKey(nome)) {
+            throw new Exception("Comunidade com esse nome j� existe.");
+        }
+        Comunidade c = new Comunidade(nome, descricao, dono);
+        comunidades.put(nome, c);
+        // add to owner's list of communities
+        Usuario u = usuarios.get(dono);
+        if (u != null) u.adicionarComunidade(nome);
+    }
+
+    public String getDescricaoComunidade(String nome) throws Exception {
+        if (!comunidades.containsKey(nome)) {
+            throw new Exception("Comunidade n�o existe.");
+        }
+        return comunidades.get(nome).getDescricao();
+    }
+
+    public String getDonoComunidade(String nome) throws Exception {
+        if (!comunidades.containsKey(nome)) {
+            throw new Exception("Comunidade n�o existe.");
+        }
+        return comunidades.get(nome).getDono();
+    }
+
+    public String getMembrosComunidade(String nome) throws Exception {
+        if (!comunidades.containsKey(nome)) {
+            throw new Exception("Comunidade n�o existe.");
+        }
+        return comunidades.get(nome).getMembrosFormato();
+    }
+
+    public void adicionarComunidade(String sessao, String nome) throws Exception {
+        if (sessao == null || sessao.isEmpty() || !sessoes.containsKey(sessao)) {
+            throw new Exception("Usu�rio n�o cadastrado.");
+        }
+        String login = sessoes.get(sessao);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usu�rio n�o cadastrado.");
+        }
+        if (!comunidades.containsKey(nome)) {
+            throw new Exception("Comunidade n�o existe.");
+        }
+        Comunidade c = comunidades.get(nome);
+        if (c.temMembro(login) || usuarios.get(login).pertenceComunidade(nome)) {
+            throw new Exception("Usuario j� faz parte dessa comunidade.");
+        }
+        c.adicionarMembro(login);
+        usuarios.get(login).adicionarComunidade(nome);
+    }
+
+    public String getComunidades(String idOuLogin) throws Exception {
+        if (idOuLogin == null || idOuLogin.isEmpty()) {
+            throw new Exception("Usu�rio n�o cadastrado.");
+        }
+        String login = idOuLogin;
+        if (sessoes.containsKey(idOuLogin)) {
+            login = sessoes.get(idOuLogin);
+        }
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usu�rio n�o cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.listaComunidadesFormato();
+    }
+
     public void encerrarSistema() {
         salvarDados();
         usuarios.clear();
+        comunidades.clear();
     }
 }
 

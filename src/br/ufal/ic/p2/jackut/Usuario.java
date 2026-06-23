@@ -11,6 +11,7 @@ public class Usuario implements Serializable {
     private java.util.Set<String> amigos;
     private java.util.Set<String> pedidosRecebidos;
     private java.util.Queue<String> recados;
+    private java.util.LinkedHashSet<String> comunidades;
 
     public Usuario(String login, String senha, String nome) {
         this.login = login;
@@ -20,6 +21,7 @@ public class Usuario implements Serializable {
         this.amigos = new java.util.LinkedHashSet<>();
         this.pedidosRecebidos = new java.util.LinkedHashSet<>();
         this.recados = new java.util.LinkedList<>();
+        this.comunidades = new java.util.LinkedHashSet<>();
     }
 
     public String getLogin() {
@@ -93,6 +95,21 @@ public class Usuario implements Serializable {
 
     public String lerRecado() {
         return recados.poll();
+    }
+
+    public void adicionarComunidade(String nome) {
+        if (nome == null) return;
+        comunidades.add(nome);
+    }
+
+    public boolean pertenceComunidade(String nome) {
+        if (nome == null) return false;
+        return comunidades.contains(nome);
+    }
+
+    public String listaComunidadesFormato() {
+        if (comunidades == null || comunidades.isEmpty()) return "{}";
+        return "{" + String.join(",", comunidades) + "}";
     }
 }
 

@@ -47,6 +47,30 @@ public class Facade {
         return sistema.lerRecado(id);
     }
 
+    public void criarComunidade(String sessao, String nome, String descricao) throws Exception {
+        sistema.criarComunidade(sessao, nome, descricao);
+    }
+
+    public String getDescricaoComunidade(String nome) throws Exception {
+        return sistema.getDescricaoComunidade(nome);
+    }
+
+    public String getDonoComunidade(String nome) throws Exception {
+        return sistema.getDonoComunidade(nome);
+    }
+
+    public String getMembrosComunidade(String nome) throws Exception {
+        return sistema.getMembrosComunidade(nome);
+    }
+
+    public void adicionarComunidade(String sessao, String nome) throws Exception {
+        sistema.adicionarComunidade(sessao, nome);
+    }
+
+    public String getComunidades(String idOuLogin) throws Exception {
+        return sistema.getComunidades(idOuLogin);
+    }
+
     public void encerrarSistema() {
         sistema.encerrarSistema();
     }
