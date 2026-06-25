@@ -265,50 +265,49 @@ public class SistemaJackut {
             throw new Exception("Nome inválido.");
         }
         if (comunidades.containsKey(nome)) {
-            throw new Exception("Comunidade com esse nome j� existe.");
+            throw new Exception("Comunidade com esse nome já existe.");
         }
         Comunidade c = new Comunidade(nome, descricao, dono);
         comunidades.put(nome, c);
-        // add to owner's list of communities
         Usuario u = usuarios.get(dono);
         if (u != null) u.adicionarComunidade(nome);
     }
 
     public String getDescricaoComunidade(String nome) throws Exception {
         if (!comunidades.containsKey(nome)) {
-            throw new Exception("Comunidade n�o existe.");
+            throw new Exception("Comunidade não existe.");
         }
         return comunidades.get(nome).getDescricao();
     }
 
     public String getDonoComunidade(String nome) throws Exception {
         if (!comunidades.containsKey(nome)) {
-            throw new Exception("Comunidade n�o existe.");
+            throw new Exception("Comunidade não existe.");
         }
         return comunidades.get(nome).getDono();
     }
 
     public String getMembrosComunidade(String nome) throws Exception {
         if (!comunidades.containsKey(nome)) {
-            throw new Exception("Comunidade n�o existe.");
+            throw new Exception("Comunidade não existe.");
         }
         return comunidades.get(nome).getMembrosFormato();
     }
 
     public void adicionarComunidade(String sessao, String nome) throws Exception {
         if (sessao == null || sessao.isEmpty() || !sessoes.containsKey(sessao)) {
-            throw new Exception("Usu�rio n�o cadastrado.");
+            throw new Exception("Usuário não cadastrado.");
         }
         String login = sessoes.get(sessao);
         if (!usuarios.containsKey(login)) {
-            throw new Exception("Usu�rio n�o cadastrado.");
+            throw new Exception("Usuário não cadastrado.");
         }
         if (!comunidades.containsKey(nome)) {
-            throw new Exception("Comunidade n�o existe.");
+            throw new Exception("Comunidade não existe.");
         }
         Comunidade c = comunidades.get(nome);
         if (c.temMembro(login) || usuarios.get(login).pertenceComunidade(nome)) {
-            throw new Exception("Usuario j� faz parte dessa comunidade.");
+            throw new Exception("Usuario já faz parte dessa comunidade.");
         }
         c.adicionarMembro(login);
         usuarios.get(login).adicionarComunidade(nome);
@@ -316,14 +315,14 @@ public class SistemaJackut {
 
     public String getComunidades(String idOuLogin) throws Exception {
         if (idOuLogin == null || idOuLogin.isEmpty()) {
-            throw new Exception("Usu�rio n�o cadastrado.");
+            throw new Exception("Usuário não cadastrado.");
         }
         String login = idOuLogin;
         if (sessoes.containsKey(idOuLogin)) {
             login = sessoes.get(idOuLogin);
         }
         if (!usuarios.containsKey(login)) {
-            throw new Exception("Usu�rio n�o cadastrado.");
+            throw new Exception("Usuário não cadastrado.");
         }
         Usuario u = usuarios.get(login);
         return u.listaComunidadesFormato();
@@ -464,6 +463,54 @@ public class SistemaJackut {
         }
         
         userRem.adicionarInimigo(inimigo);
+    }
+
+    public void removerUsuario(String id) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String login = sessoes.get(id);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        
+        Usuario user = usuarios.get(login);
+
+        for (Usuario outro : usuarios.values()) {
+            if (!outro.getLogin().equals(login)) {
+                outro.removerAmigo(login);
+                outro.removerFa(login);
+                outro.removerIdolo(login);
+                outro.removerPaquera(login);
+                outro.removerInimigo(login);
+                outro.limparRecados();
+                outro.limparMensagens();
+            }
+        }
+
+        java.util.Set<String> comunidadesParaRemover = new java.util.HashSet<>();
+        for (String nomeComunidade : comunidades.keySet()) {
+            Comunidade c = comunidades.get(nomeComunidade);
+            if (c.getDono().equals(login)) {
+                comunidadesParaRemover.add(nomeComunidade);
+            }
+        }
+        for (String nomeComunidade : comunidadesParaRemover) {
+            comunidades.remove(nomeComunidade);
+            for (Usuario outro : usuarios.values()) {
+                if (!outro.getLogin().equals(login)) {
+                    outro.removerComunidade(nomeComunidade);
+                }
+            }
+        }
+
+        for (Comunidade c : comunidades.values()) {
+            c.removerMembro(login);
+            user.removerComunidade(c.getNome());
+        }
+
+        usuarios.remove(login);
+        sessoes.remove(id);
     }
 }
 

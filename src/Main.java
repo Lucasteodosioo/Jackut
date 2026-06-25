@@ -18,6 +18,9 @@ public class Main {
         EasyAccept.main(new String[] {"br.ufal.ic.p2.jackut.Facade", "tests/us7_2.txt"});
         EasyAccept.main(new String[] {"br.ufal.ic.p2.jackut.Facade", "tests/us8_1.txt"});
         EasyAccept.main(new String[] {"br.ufal.ic.p2.jackut.Facade", "tests/us8_2.txt"});
+        EasyAccept.main(new String[] {"br.ufal.ic.p2.jackut.Facade", "tests/us9_1.txt"});
+        EasyAccept.main(new String[] {"br.ufal.ic.p2.jackut.Facade", "tests/us9_2.txt"});
+
 
     }
 }

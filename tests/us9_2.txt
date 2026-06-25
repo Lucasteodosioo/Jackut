@@ -1,0 +1,12 @@
+# User Story 9 - Remo��o de conta - Teste de persist�ncia
+
+expectError "Login ou senha inválidos." abrirSessao login=jpsauve senha=sauvejp
+expectError "Comunidade não existe." getDescricaoComunidade nome="UFCG"
+expect {} getComunidades login=oabath
+expect {} getAmigos login=oabath
+
+s2=abrirSessao login=oabath senha=abatho
+expectError "Não há recados." lerRecado id=${s2}
+
+encerrarSistema
+quit

@@ -1,4 +1,4 @@
-# User Story 6 - Adição de comunidades - Verificação de persistência
+# User Story 6 - Adiï¿½ï¿½o de comunidades - Verificaï¿½ï¿½o de persistï¿½ncia
 
 expect jpsauve getDonoComunidade nome="Professores da UFCG"
 expect oabath getDonoComunidade nome="Alunos da UFCG"

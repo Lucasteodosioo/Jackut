@@ -29,6 +29,10 @@ public class Comunidade implements Serializable {
         return dono;
     }
 
+    public String getNome() {
+        return nome;
+    }
+
     public String getMembrosFormato() {
         if (membros == null || membros.isEmpty()) return "{}";
         return "{" + String.join(",", membros) + "}";
@@ -46,5 +50,10 @@ public class Comunidade implements Serializable {
 
     public java.util.Set<String> getMembros() {
         return new java.util.LinkedHashSet<>(membros);
+    }
+
+    public void removerMembro(String login) {
+        if (login == null) return;
+        membros.remove(login);
     }
 }

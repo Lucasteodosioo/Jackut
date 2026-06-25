@@ -187,5 +187,47 @@ public class Usuario implements Serializable {
         }
         return "{" + String.join(",", inimigos) + "}";
     }
+
+    public void removerAmigo(String loginAmigo) {
+        if (loginAmigo == null) return;
+        amigos.remove(loginAmigo);
+    }
+
+    public void removerFa(String loginFa) {
+        if (loginFa == null) return;
+        fas.remove(loginFa);
+    }
+
+    public void removerIdolo(String loginIdolo) {
+        if (loginIdolo == null) return;
+        idolos.remove(loginIdolo);
+    }
+
+    public void removerPaquera(String loginPaquera) {
+        if (loginPaquera == null) return;
+        paqueras.remove(loginPaquera);
+    }
+
+    public void removerInimigo(String loginInimigo) {
+        if (loginInimigo == null) return;
+        inimigos.remove(loginInimigo);
+    }
+
+    public void removerComunidade(String nomeComunidade) {
+        if (nomeComunidade == null) return;
+        comunidades.remove(nomeComunidade);
+    }
+
+    public void limparRecados() {
+        if (recados != null) {
+            recados.clear();
+        }
+    }
+
+    public void limparMensagens() {
+        if (mensagens != null) {
+            mensagens.clear();
+        }
+    }
 }
 

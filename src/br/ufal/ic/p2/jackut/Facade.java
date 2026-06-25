@@ -107,6 +107,10 @@ public class Facade {
         sistema.adicionarInimigo(id, inimigo);
     }
 
+    public void removerUsuario(String id) throws Exception {
+        sistema.removerUsuario(id);
+    }
+
     public void encerrarSistema() {
         sistema.encerrarSistema();
     }
