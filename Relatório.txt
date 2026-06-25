@@ -18,27 +18,32 @@ Visão geral das classes principais
     - Persistir o estado em arquivo (`usuarios.dat`) ao encerrar o sistema e carregar ao iniciar (serialização Java).
   - Motivo: centralizar regras e persistência em uma única classe facilita o controle de transações lógicas e testes unitários.
 
-- Usuario (br.ufal.ic.Usuario)
+- Usuario (br.ufal.ic.p2.jackut.Usuario)
   - Papel: modelo de domínio para um usuário.
   - Campos principais:
     - login, senha, nome
     - amigos (LinkedHashSet<String>) — mantém ordem de inserção para facilitar testes que verificam ordem
     - pedidosRecebidos (LinkedHashSet<String>) — pedidos de amizade pendentes
-    - recados (Queue<String>, LinkedList) — fila FIFO de recados recebidos
-  - Motivo das escolhas:
-    - Map para atributos para permitir atributos arbitrários e inexistentes (testes esperam lançar exceção quando atributo ausente).
-    - LinkedHashSet para amigos para preservar ordem previsível nos asserts dos testes.
-    - Queue para recados para garantir comportamento FIFO.
-    - Implementa Serializable para que a coleção inteira de usuários seja persistível diretamente com ObjectOutputStream.
+    - recados (Queue<String>, LinkedList) — fila FIFO de recados recebidos (privados)
+    - mensagens (Queue<String>, LinkedList) — fila FIFO de mensagens de comunidades
+    - comunidades (LinkedHashSet<String>) — comunidades às quais o usuário pertence
+    - idolos (LinkedHashSet<String>) — usuários que este usuário segue como ídolos
+    - fas (LinkedHashSet<String>) — usuários que seguem este usuário como ídolo
+    - paqueras (LinkedHashSet<String>) — usuários marcados como paquera
+    - inimigos (LinkedHashSet<String>) — usuários marcados como inimigos
+
+- Comunidade (br.ufal.ic.p2.jackut.Comunidade)
+  - Papel: modelo de domínio para comunidades (grupos).
+  - Campos principais:
+    - nome, descricao, dono
+    - membros (LinkedHashSet<String>) — preserva ordem de inserção
 
 - Main (classe na raiz, sem package)
   - Papel: launcher para execução com EasyAccept. Mantém-se fora do package para facilitar execução pelo professor/IDE.
-  - Motivo: evitar dependência de package na classe de entrada usada pelo executor dos testes.
 
 Principais decisões de implementação
 1. Persistência via serialização Java (arquivo `usuarios.dat`)
    - Simplicidade: serializar o mapa de usuários é direto e suficiente para o escopo da disciplina.
-   - Observação: em projetos reais, seria preferível usar formato legível (JSON) ou um banco de dados para maior robustez e versionamento.
 
 2. Sessões representadas por IDs (String)
    - Ao abrir sessão, retorna-se um id (String) que é usado em comandos que exigem autenticação (ex.: editarPerfil, adicionarAmigo, enviarRecado, lerRecado).
@@ -46,10 +51,22 @@ Principais decisões de implementação
 
 3. Estruturas de dados selecionadas
    - Map<String,Usuario> para usuários: acesso O(1) por login.
-   - LinkedHashSet para amigos e pedidos: preserva ordem de inserção e evita duplicatas.
-   - Queue (LinkedList) para recados: comportamento FIFO pedido pelos testes.
+   - LinkedHashSet para relacionamentos (amigos, ídolos, fãs, paqueras, inimigos): preserva ordem de inserção e evita duplicatas.
+   - Queues (LinkedList) para recados e mensagens: comportamento FIFO pedido pelos testes.
+   - Map<String,Comunidade> para comunidades: acesso O(1) pelo nome da comunidade.
 
-4. Tratamento de atributos de perfil
+4. Sistema de relacionamentos múltiplos
+   - Amigos: relacionamento com sistema de pedidos (aceitar/rejeitar).
+   - Ídolos/Fãs: relacionamento (seguir/ser seguido) — quando A adiciona B como ídolo, B recebe A como fã.
+   - Paqueras e Inimigos: listas de interesse especial sem confirmação.
+
+5. Comunidades e Mensagens em Grupo
+   - Comunidades são grupos que usuários podem criar e aderir.
+   - Cada comunidade tem: nome, descrição, dono (criador), lista de membros.
+   - Permitem enviar mensagens compartilhadas em fila FIFO (diferentes de recados privados).
+   - Motivo: separar comunicação privada (recados) de comunicação em grupo (mensagens em comunidades).
+
+6. Tratamento de atributos de perfil
    - `getAtributo` retorna `nome` se atributo == "nome"; retorna null se atributo inexistente.
 
 Outras decisões de design
