@@ -97,26 +97,30 @@ public class SistemaJackut {
         if (remetente.equals(amigo)) {
             throw new Exception("Usuário não pode adicionar a si mesmo como amigo.");
         }
+        
+        Usuario userAmigo = usuarios.get(amigo);
+        if (userAmigo.temInimigo(remetente)) {
+            throw new Exception("Função inválida: " + usuarios.get(amigo).getNome() + " é seu inimigo.");
+        }
 
         Usuario userRem = usuarios.get(remetente);
-        Usuario userDest = usuarios.get(amigo);
 
         if (userRem.ehAmigo(amigo)) {
             throw new Exception("Usuário já está adicionado como amigo.");
         }
 
-        if (userDest.temPedidoDe(remetente)) {
+        if (userAmigo.temPedidoDe(remetente)) {
             throw new Exception("Usuário já está adicionado como amigo, esperando aceitação do convite.");
         }
 
         if (userRem.temPedidoDe(amigo)) {
             userRem.removerPedido(amigo);
             userRem.adicionarAmigo(amigo);
-            userDest.adicionarAmigo(remetente);
+            userAmigo.adicionarAmigo(remetente);
             return;
         }
 
-        userDest.receberPedido(remetente);
+        userAmigo.receberPedido(remetente);
     }
 
     public boolean ehAmigo(String login, String amigo) throws Exception {
@@ -149,7 +153,12 @@ public class SistemaJackut {
         if (remetente.equals(destinatario)) {
             throw new Exception("Usuário não pode enviar recado para si mesmo.");
         }
+        
         Usuario userDest = usuarios.get(destinatario);
+        if (userDest.temInimigo(remetente)) {
+            throw new Exception("Função inválida: " + usuarios.get(destinatario).getNome() + " é seu inimigo.");
+        }
+        
         userDest.receberRecado(recado);
     }
 
@@ -167,6 +176,42 @@ public class SistemaJackut {
             throw new Exception("Não há recados.");
         }
         return rec;
+    }
+
+    public void enviarMensagem(String id, String comunidade, String mensagem) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!comunidades.containsKey(comunidade)) {
+            throw new Exception("Comunidade não existe.");
+        }
+        Comunidade c = comunidades.get(comunidade);
+        for (String membro : c.getMembros()) {
+            Usuario user = usuarios.get(membro);
+            if (user != null) {
+                user.receberMensagem(mensagem);
+            }
+        }
+    }
+
+    public String lerMensagem(String id) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String login = sessoes.get(id);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        String msg = u.lerMensagem();
+        if (msg == null) {
+            throw new Exception("Não há mensagens.");
+        }
+        return msg;
     }
 
     public void criarUsuario(String login, String senha, String nome) throws Exception {
@@ -288,6 +333,137 @@ public class SistemaJackut {
         salvarDados();
         usuarios.clear();
         comunidades.clear();
+    }
+
+    public void adicionarIdolo(String id, String idolo) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!usuarios.containsKey(idolo)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (remetente.equals(idolo)) {
+            throw new Exception("Usuário não pode ser fã de si mesmo.");
+        }
+        
+        Usuario userIdolo = usuarios.get(idolo);
+        if (userIdolo.temInimigo(remetente)) {
+            throw new Exception("Função inválida: " + usuarios.get(idolo).getNome() + " é seu inimigo.");
+        }
+        
+        Usuario userRem = usuarios.get(remetente);
+        
+        if (userRem.ehFa(idolo)) {
+            throw new Exception("Usuário já está adicionado como ídolo.");
+        }
+        
+        userRem.adicionarIdolo(idolo);
+        userIdolo.receberFa(remetente);
+    }
+
+    public boolean ehFa(String login, String idolo) throws Exception {
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.ehFa(idolo);
+    }
+
+    public String getFas(String login) throws Exception {
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.listaFasFormato();
+    }
+
+    public void adicionarPaquera(String id, String paquera) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!usuarios.containsKey(paquera)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (remetente.equals(paquera)) {
+            throw new Exception("Usuário não pode ser paquera de si mesmo.");
+        }
+        
+        Usuario userPaquera = usuarios.get(paquera);
+        if (userPaquera.temInimigo(remetente)) {
+            throw new Exception("Função inválida: " + usuarios.get(paquera).getNome() + " é seu inimigo.");
+        }
+        
+        Usuario userRem = usuarios.get(remetente);
+        
+        if (userRem.ehPaquera(paquera)) {
+            throw new Exception("Usuário já está adicionado como paquera.");
+        }
+        
+        userRem.adicionarPaquera(paquera);
+        
+        // Check if mutual crush
+        if (userPaquera.ehPaquera(remetente)) {
+            String msg1 = usuarios.get(paquera).getNome() + " é seu paquera - Recado do Jackut.";
+            String msg2 = usuarios.get(remetente).getNome() + " é seu paquera - Recado do Jackut.";
+            userRem.receberRecado(msg1);
+            userPaquera.receberRecado(msg2);
+        }
+    }
+
+    public boolean ehPaquera(String id, String paquera) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String login = sessoes.get(id);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.ehPaquera(paquera);
+    }
+
+    public String getPaqueras(String id) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String login = sessoes.get(id);
+        if (!usuarios.containsKey(login)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        Usuario u = usuarios.get(login);
+        return u.listaParquerasFormato();
+    }
+
+    public void adicionarInimigo(String id, String inimigo) throws Exception {
+        if (id == null || id.isEmpty() || !sessoes.containsKey(id)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        String remetente = sessoes.get(id);
+        if (!usuarios.containsKey(remetente)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (!usuarios.containsKey(inimigo)) {
+            throw new Exception("Usuário não cadastrado.");
+        }
+        if (remetente.equals(inimigo)) {
+            throw new Exception("Usuário não pode ser inimigo de si mesmo.");
+        }
+        
+        Usuario userRem = usuarios.get(remetente);
+        
+        if (userRem.temInimigo(inimigo)) {
+            throw new Exception("Usuário já está adicionado como inimigo.");
+        }
+        
+        userRem.adicionarInimigo(inimigo);
     }
 }
 

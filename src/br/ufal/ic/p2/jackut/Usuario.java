@@ -11,7 +11,12 @@ public class Usuario implements Serializable {
     private java.util.Set<String> amigos;
     private java.util.Set<String> pedidosRecebidos;
     private java.util.Queue<String> recados;
+    private java.util.Queue<String> mensagens;
     private java.util.LinkedHashSet<String> comunidades;
+    private java.util.Set<String> fas;
+    private java.util.Set<String> idolos;
+    private java.util.Set<String> paqueras;
+    private java.util.Set<String> inimigos;
 
     public Usuario(String login, String senha, String nome) {
         this.login = login;
@@ -21,7 +26,12 @@ public class Usuario implements Serializable {
         this.amigos = new java.util.LinkedHashSet<>();
         this.pedidosRecebidos = new java.util.LinkedHashSet<>();
         this.recados = new java.util.LinkedList<>();
+        this.mensagens = new java.util.LinkedList<>();
         this.comunidades = new java.util.LinkedHashSet<>();
+        this.fas = new java.util.LinkedHashSet<>();
+        this.idolos = new java.util.LinkedHashSet<>();
+        this.paqueras = new java.util.LinkedHashSet<>();
+        this.inimigos = new java.util.LinkedHashSet<>();
     }
 
     public String getLogin() {
@@ -97,6 +107,16 @@ public class Usuario implements Serializable {
         return recados.poll();
     }
 
+    public void receberMensagem(String mensagem) {
+        if (mensagem == null) return;
+        mensagens.add(mensagem);
+    }
+
+    public String lerMensagem() {
+        if (mensagens == null) return null;
+        return mensagens.poll();
+    }
+
     public void adicionarComunidade(String nome) {
         if (nome == null) return;
         comunidades.add(nome);
@@ -110,6 +130,62 @@ public class Usuario implements Serializable {
     public String listaComunidadesFormato() {
         if (comunidades == null || comunidades.isEmpty()) return "{}";
         return "{" + String.join(",", comunidades) + "}";
+    }
+
+    public void adicionarIdolo(String loginIdolo) {
+        if (loginIdolo == null) return;
+        idolos.add(loginIdolo);
+    }
+
+    public boolean ehFa(String loginIdolo) {
+        if (loginIdolo == null) return false;
+        return idolos.contains(loginIdolo);
+    }
+
+    public void receberFa(String loginFa) {
+        if (loginFa == null) return;
+        fas.add(loginFa);
+    }
+
+    public String listaFasFormato() {
+        if (fas == null || fas.isEmpty()) {
+            return "{}";
+        }
+        return "{" + String.join(",", fas) + "}";
+    }
+
+    public void adicionarPaquera(String loginPaquera) {
+        if (loginPaquera == null) return;
+        paqueras.add(loginPaquera);
+    }
+
+    public boolean ehPaquera(String loginPaquera) {
+        if (loginPaquera == null) return false;
+        return paqueras.contains(loginPaquera);
+    }
+
+    public String listaParquerasFormato() {
+        if (paqueras == null || paqueras.isEmpty()) {
+            return "{}";
+        }
+        return "{" + String.join(",", paqueras) + "}";
+    }
+
+    public void adicionarInimigo(String loginInimigo) {
+        if (loginInimigo == null) return;
+        inimigos.add(loginInimigo);
+    }
+
+    public boolean temInimigo(String loginInimigo) {
+        if (loginInimigo == null) return false;
+        return inimigos.contains(loginInimigo);
+    }
+
+    public String listaInimigosFormato() {
+        if (inimigos == null || inimigos.isEmpty()) {
+            return "{}";
+        }
+        return "{" + String.join(",", inimigos) + "}";
     }
 }
 

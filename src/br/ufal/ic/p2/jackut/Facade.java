@@ -47,6 +47,14 @@ public class Facade {
         return sistema.lerRecado(id);
     }
 
+    public void enviarMensagem(String id, String comunidade, String mensagem) throws Exception {
+        sistema.enviarMensagem(id, comunidade, mensagem);
+    }
+
+    public String lerMensagem(String id) throws Exception {
+        return sistema.lerMensagem(id);
+    }
+
     public void criarComunidade(String sessao, String nome, String descricao) throws Exception {
         sistema.criarComunidade(sessao, nome, descricao);
     }
@@ -69,6 +77,34 @@ public class Facade {
 
     public String getComunidades(String idOuLogin) throws Exception {
         return sistema.getComunidades(idOuLogin);
+    }
+
+    public void adicionarIdolo(String id, String idolo) throws Exception {
+        sistema.adicionarIdolo(id, idolo);
+    }
+
+    public boolean ehFa(String login, String idolo) throws Exception {
+        return sistema.ehFa(login, idolo);
+    }
+
+    public String getFas(String login) throws Exception {
+        return sistema.getFas(login);
+    }
+
+    public void adicionarPaquera(String id, String paquera) throws Exception {
+        sistema.adicionarPaquera(id, paquera);
+    }
+
+    public boolean ehPaquera(String id, String paquera) throws Exception {
+        return sistema.ehPaquera(id, paquera);
+    }
+
+    public String getPaqueras(String id) throws Exception {
+        return sistema.getPaqueras(id);
+    }
+
+    public void adicionarInimigo(String id, String inimigo) throws Exception {
+        sistema.adicionarInimigo(id, inimigo);
     }
 
     public void encerrarSistema() {

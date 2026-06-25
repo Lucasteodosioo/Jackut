@@ -43,4 +43,8 @@ public class Comunidade implements Serializable {
         if (login == null) return false;
         return membros.contains(login);
     }
+
+    public java.util.Set<String> getMembros() {
+        return new java.util.LinkedHashSet<>(membros);
+    }
 }
